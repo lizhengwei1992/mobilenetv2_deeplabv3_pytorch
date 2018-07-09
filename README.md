@@ -1,2 +1,8 @@
 # mobilenetv2_deeplabv3_pytorch
-Try to implement deeplab v3+ on pytorch according to offical demo.
+From [tensorflow/models/research/deeplab](https://github.com/tensorflow/models/tree/master/research/deeplab), we can know details of Deeplab v3+ ([paper](https://arxiv.org/abs/1802.02611)).
+
+
+The [TensorFlow DeepLab Model Zoo](https://github.com/tensorflow/models/blob/master/research/deeplab/g3doc/model_zoo.md) provides four pre_train models. Using **Mibilenetv2** as feature exstractor and according to [offical demo](https://colab.sandbox.google.com/github/tensorflow/models/blob/master/research/deeplab/deeplab_demo.ipynb) (run on [Calab](https://colab.research.google.com/notebooks/welcome.ipynb)), I have give a tensorflow segmentation demo in my [demo_mobilenetv2_deeplabv3](https://github.com/lizhengwei1992/demo_mobilenetv2_deeplabv3).
+
+
+These codes are implementation of mobiletv2_deeplab_v3 on pytorch.
