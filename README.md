@@ -16,7 +16,9 @@ the net architecture mainly contains: **mobilenetv2**、**aspp**.
 
 
 <div align=center>
+      
 ![graph](https://github.com/lizhengwei1992/mobilenetv2_deeplabv3_pytorch/raw/master/images/graph.png)
+      
 </div>
       
 
