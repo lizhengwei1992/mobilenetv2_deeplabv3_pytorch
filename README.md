@@ -30,7 +30,7 @@ Attention these blockks (1th 4th 6th) in [code](https://github.com/lizhengwei199
 
     +-------------------------------------------+-------------------------+
     |                                           |   output stride         |
-    +===========================================+=========================+                                            
+    +===========================================+=========================+
     |       original Mobile_Net_V2              |          32             | 
     +-------------------------------------------+-------------------------+
     |   self.interverted_residual_setting = [   |                         |
@@ -44,7 +44,7 @@ Attention these blockks (1th 4th 6th) in [code](https://github.com/lizhengwei199
     |       [6, 320, 1, 1],                     |                         |
     |   ]                                       |                         |
     +-------------------------------------------+-------------------------+
-    |    mobile_net_v2 in deeplab_v3+            |          8             |
+    |    mobile_net_v2 in deeplab_v3+           |           8             |
     +-------------------------------------------+-------------------------+
     |   self.interverted_residual_setting = [   |                         |
     |       # t, c, n, s                        |                         |
