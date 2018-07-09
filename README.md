@@ -6,3 +6,10 @@ The [TensorFlow DeepLab Model Zoo](https://github.com/tensorflow/models/blob/mas
 
 
 These codes are implementation of mobiletv2_deeplab_v3 on pytorch.
+
+## network architecture
+In [demo_mobilenetv2_deeplabv3](https://github.com/lizhengwei1992/demo_mobilenetv2_deeplabv3), use function ```save_graph()```
+to get tensorflow graph to folder pre_train, then run ```tensorboard --logdir=pre_train``` to open tensorboard in browser:
+
+      
+
