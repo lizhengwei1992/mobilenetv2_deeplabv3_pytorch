@@ -68,7 +68,7 @@ class InvertedResidual(nn.Module):
             nn.BatchNorm2d(inp * expand_ratio),
             nn.ReLU6(inplace=True),
             # dw
-            nn.Conv2d(inp, inp * expand_ratio, 3, stride, 1, groups=inp * expand_ratio, bias=False),
+            nn.Conv2d(inp * expand_ratio, inp * expand_ratio, 3, stride, 1, groups=inp * expand_ratio, bias=False),
             nn.BatchNorm2d(inp * expand_ratio),
             nn.ReLU6(inplace=True),
             # pw-linear
