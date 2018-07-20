@@ -29,9 +29,9 @@ the mobilenetv2 in deeplabv3 is little different from original architecture at o
 Attention these blockks (1th 4th 6th) in [code](https://github.com/lizhengwei1992/mobilenetv2_deeplabv3_pytorch/blob/master/model/MobileNet_v2.py) .
 
     +-------------------------------------------+-------------------------+
-    |                                           |   output stride         |
+    |                                               output stride
     +===========================================+=========================+
-    |       original Mobile_Net_V2              |          32             | 
+    |       original MobileNet_v2_OS_32         |          32             | 
     +-------------------------------------------+-------------------------+
     |   self.interverted_residual_setting = [   |                         |
     |       # t, c, n, s                        |                         |
@@ -44,7 +44,7 @@ Attention these blockks (1th 4th 6th) in [code](https://github.com/lizhengwei199
     |       [6, 320, 1, 1],                     |                         |
     |   ]                                       |                         |
     +-------------------------------------------+-------------------------+
-    |    mobile_net_v2 in deeplab_v3+           |           8             |
+    |          MobileNet_v2_OS_8                |          8              |
     +-------------------------------------------+-------------------------+
     |   self.interverted_residual_setting = [   |                         |
     |       # t, c, n, s                        |                         |
