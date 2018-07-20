@@ -1,4 +1,7 @@
 # mobilenetv2_deeplabv3_pytorch
+
+**NOTE : The final purpose is Using deeplabv3_plus_nv2 to do portrait segmantation !**
+
 From [tensorflow/models/research/deeplab](https://github.com/tensorflow/models/tree/master/research/deeplab), we can know details of Deeplab v3+ ([paper](https://arxiv.org/abs/1802.02611)).
 
 
