@@ -10,7 +10,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-
+import pdb
 
 def set_lr(args, epoch):
 
@@ -76,6 +76,27 @@ class saveData():
 
 
 ##############################################
+
+def cross_entropy2d(input, target, weight=None, size_average=True):
+    n, c, h, w = input.size()
+
+
+    pdb.set_trace()
+    log_p = F.log_softmax(input, dim=1)
+    log_p = log_p.transpose(1, 2).transpose(2, 3).contiguous().view(-1, c)
+    log_p = log_p[target.view(-1, 1).repeat(1, c) >= 0]
+    log_p = log_p.view(-1, c)
+
+    mask = target >= 0
+    target = target[mask].long()
+    loss = F.nll_loss(log_p, target, ignore_index=-1,
+                      weight=weight, size_average=False)
+    if size_average:
+        loss /= mask.data.sum()
+    return loss
+
+
+##############################################
 # vis_segmentation
 # -------------------
 from matplotlib import gridspec
@@ -121,22 +142,142 @@ def label_to_color_image(label):
 
   return colormap[label]
 
-# -------------------------------------------------
-# from collections import OrderedDict
 
-# def load_pretrain_pam(net):
+##############################################
+# load pre_train model 
+# -------------------
 
-# 	state_dict = torch.load('mobilenetv2_718.pth')
-# 	new_state_dict = OrderedDict()
-# 	for k, v in state_dict.items():
+from collections import OrderedDict
+'''
+def load_pretrain_pam(net):
+
+	state_dict = torch.load('mobilenetv2_718.pth')
+	new_state_dict = OrderedDict()
+	i = 0
+	for k, v in state_dict.items():
 		
-# 		if k.startswith('module.feature'):
-# 			if not k.startswith('module.features.18'):
-# 				# print(k)
-# 				name = k[7:] 
-# 				new_state_dict[name] = v
+		if k.startswith('module.feature'):
+			if not k.startswith('module.features.18'):
 
-# 	net.mobilenet_features.load_state_dict(new_state_dict)
+				print(k)
+				name = k[7:] 
+				new_state_dict[name] = v
 
-# 	return net
+	net.mobilenet_features.load_state_dict(new_state_dict)
+
+	return net
+'''
+def load_pretrain_pam(net):
+
+	print("Load pre_trained MobileNet_v2 weights from mobilenetv2_718.pth ! ")
+	state_dict = torch.load('./pre_train/mobilenetv2_718.pth')
+	new_state_dict = OrderedDict()
+	i = 0
+	n = 0
+	for k, v in state_dict.items():
+		
+		if k.startswith('module.feature'):
+			if not k.startswith('module.features.18'):
+				# head conv
+				if k.split('.')[2] in ['0',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'head_conv') 
+					new_state_dict[name] = v
+
+				# block_1
+				if k.split('.')[2] in ['1',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_1') 
+					new_state_dict[name] = v
+
+				# block_2
+				if k.split('.')[2] in ['2',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_2' + '.0') 
+					new_state_dict[name] = v
+
+				if k.split('.')[2] in ['3',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_2' + '.1') 
+					new_state_dict[name] = v
+
+				# block_3				
+				if k.split('.')[2] in ['4',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_3' + '.0') 
+					new_state_dict[name] = v
+			
+				if k.split('.')[2] in ['5',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_3' + '.1') 
+					new_state_dict[name] = v
+
+				if k.split('.')[2] in ['6',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_3' + '.2') 
+					new_state_dict[name] = v
+			
+				# block_4				
+				if k.split('.')[2] in ['7',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_4' + '.0') 
+					new_state_dict[name] = v
+					
+				if k.split('.')[2] in ['8',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_4' + '.1') 
+					new_state_dict[name] = v
+
+				if k.split('.')[2] in ['9',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_4' + '.2') 
+					new_state_dict[name] = v
+	
+				if k.split('.')[2] in ['10',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_4' + '.3') 
+					new_state_dict[name] = v
+		
+				# block_5				
+				if k.split('.')[2] in ['11',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_5' + '.0') 
+					new_state_dict[name] = v
+			
+				if k.split('.')[2] in ['12',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_5' + '.1') 
+					new_state_dict[name] = v
+
+				if k.split('.')[2] in ['13',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_5' + '.2') 
+					new_state_dict[name] = v
+
+				# block_6				
+				if k.split('.')[2] in ['14',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_6' + '.0') 
+					new_state_dict[name] = v
+				
+				if k.split('.')[2] in ['15',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_6' + '.1') 
+					new_state_dict[name] = v
+
+				if k.split('.')[2] in ['16',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_6' + '.2') 
+					new_state_dict[name] = v
+
+				# block_7				
+				if k.split('.')[2] in ['17',]:
+					name = k.replace((k.split('.')[0]+'.' + k.split('.')[1]+'.' + k.split('.')[2]), 
+						'block_7') 
+					new_state_dict[name] = v
+
+	net.mobilenet_features.load_state_dict(new_state_dict)
+
+				
+	return net
 
