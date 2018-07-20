@@ -1,11 +1,11 @@
 '''
-    MobileNet_v2
+    MobileNet_v2_OS_32
     these codes brow from https://github.com/tonylins/pytorch-mobilenet-v2
     but little different from original architecture :
     +-------------------------------------------+-------------------------+
     |                                               output stride
     +===========================================+=========================+                                            
-    |       original Mobile_Net_V2              |          32             | 
+    |       original MobileNet_v2_OS_32         |          32             | 
     +-------------------------------------------+-------------------------+
     |   self.interverted_residual_setting = [   |                         |
     |       # t, c, n, s                        |                         |
@@ -18,7 +18,7 @@
     |       [6, 320, 1, 1],                     |                         |
     |   ]                                       |                         |
     +-------------------------------------------+-------------------------+
-    |    mobile_net_v2 in deeplab_v3+            |          8             |
+    |          MobileNet_v2_OS_8                |          8              |
     +-------------------------------------------+-------------------------+
     |   self.interverted_residual_setting = [   |                         |
     |       # t, c, n, s                        |                         |
@@ -33,8 +33,7 @@
     +-------------------------------------------+-------------------------+
 
     Notation! I throw away last layers.
-    if input is       3   x 513 x 513
-    then, feature map 320 x 65  x 65
+
 
 Author: Zhengwei Li
 Data: July 1 2018
@@ -49,17 +48,14 @@ def conv_bn(inp, oup, stride):
         nn.BatchNorm2d(oup),
         nn.ReLU6(inplace=True)
     )
-def conv_1x1_bn(inp, oup):
-    return nn.Sequential(
-        nn.Conv2d(inp, oup, 1, 1, 0, bias=False),
-        nn.BatchNorm2d(oup),
-        nn.ReLU6(inplace=True)
-    )
+
+
 class InvertedResidual(nn.Module):
     def __init__(self, inp, oup, stride, expand_ratio):
         super(InvertedResidual, self).__init__()
         self.stride = stride
         assert stride in [1, 2]
+
         self.use_res_connect = self.stride == 1 and inp == oup
 
         self.conv = nn.Sequential(
@@ -82,27 +78,82 @@ class InvertedResidual(nn.Module):
         else:
             return self.conv(x)
 
+#-------------------------------------------------------------------------------------------------
+# MobileNet_v2_os_32
+#--------------------
+class MobileNet_v2_os_32(nn.Module):
+    def __init__(self, nInputChannels=3):
+        super(MobileNet_v2_os_32, self).__init__()
+        # 1/2
+        # 256 x 256
+        self.head_conv = conv_bn(nInputChannels, 32, 2)
 
-class MobileNetV2(nn.Module):
-    def __init__(self, width_mult=1.):
-        super(MobileNetV2, self).__init__()
-        # setting of inverted residual blocks
-        self.interverted_residual_setting = [
-            # t, c, n, s
-            # [1, 16, 1, 1],
-            [6, 24, 2, 2],
-            [6, 32, 3, 2], 
-            [6, 64, 4, 1],     # difference [6, 64, 4, 2]
-            [6, 96, 3, 1],
-            [6, 160, 3, 1],    # difference [6, 64, 4, 2]
-            [6, 320, 1, 1],
-        ]
+        # 1/2
+        # 256 x 256
+        self.block_1 = InvertedResidual(32, 16, 1, 1)
+        # 1/4 128 x 128
+        self.block_2 = nn.Sequential( 
+            InvertedResidual(16, 24, 2, 6),
+            InvertedResidual(24, 24, 1, 6)
+            )
+        # 1/8 64 x 64
+        self.block_3 = nn.Sequential( 
+            InvertedResidual(24, 32, 2, 6),
+            InvertedResidual(32, 32, 1, 6),
+            InvertedResidual(32, 32, 1, 6)
+            )
+        # 1/16 32 x 32
+        self.block_4 = nn.Sequential( 
+            InvertedResidual(32, 64, 2, 6),
+            InvertedResidual(64, 64, 1, 6),
+            InvertedResidual(64, 64, 1, 6),
+            InvertedResidual(64, 64, 1, 6)            
+            )
+        # 1/16 32 x 32
+        self.block_5 = nn.Sequential( 
+            InvertedResidual(64, 96, 1, 6),
+            InvertedResidual(96, 96, 1, 6),
+            InvertedResidual(96, 96, 1, 6)          
+            )
+        # 1/32 16 x 16
+        self.block_6 = nn.Sequential( 
+            InvertedResidual(96, 160, 2, 6),
+            InvertedResidual(160, 160, 1, 6),
+            InvertedResidual(160, 160, 1, 6)          
+            )
+        # 1/32 16 x 16
+        self.block_7 = InvertedResidual(160, 320, 1, 6)
 
-        # building first layer
-        self.features = [conv_bn(3, 32, 2)]
 
+    def forward(self, x):
+        x = self.head_conv(x)
+
+        x = self.block_1(x)
+        x = self.block_2(x)
+        low_level_feat = x
+
+        x = self.block_3(x)
+        x = self.block_4(x)
+        x = self.block_5(x)
+        x = self.block_6(x)
+        x = self.block_7(x)
+
+        return x, low_level_feat
+
+
+
+#-------------------------------------------------------------------------------------------------
+# MobileNet_v2_os_8
+#--------------------
+class MobileNet_v2_os_8(nn.Module):
+    def __init__(self, nInputChannels=3):
+        super(MobileNet_v2_os_8, self).__init__()
+
+        # 1/2 256 x 256
+        self.head_conv = conv_bn(nInputChannels, 32, 2)
+        # 1/2 256 x 256
         # head bock different form original mobilenetv2
-        block_head = nn.Sequential(
+        self.block_1 = nn.Sequential(
             # dw
             nn.Conv2d(32, 32, 3, 1, 1, groups=32, bias=False),
             nn.BatchNorm2d(32),
@@ -111,29 +162,60 @@ class MobileNetV2(nn.Module):
             nn.Conv2d(32, 16, 1, 1, 0, bias=False),
             nn.BatchNorm2d(16),
         )
-        self.features.append(block_head)
-
-        # building inverted residual blocks
-        input_channel = int(16)
-        for t, c, n, s in self.interverted_residual_setting:
-            output_channel = int(c)
-            for i in range(n):
-                if i == 0:
-                    self.features.append(InvertedResidual(input_channel, output_channel, s, t))
-                else:
-                    self.features.append(InvertedResidual(input_channel, output_channel, 1, t))
-                input_channel = output_channel
-
-        self.features = nn.Sequential(*self.features)
+        # 1/4 128 x 128
+        self.block_2 = nn.Sequential( 
+            InvertedResidual(16, 24, 2, 6),
+            InvertedResidual(24, 24, 1, 6)
+            )
+        # 1/8 64 x 64
+        self.block_3 = nn.Sequential( 
+            InvertedResidual(24, 32, 2, 6),
+            InvertedResidual(32, 32, 1, 6),
+            InvertedResidual(32, 32, 1, 6)
+            )
+        # 1/8 64 x 64
+        self.block_4 = nn.Sequential( 
+            InvertedResidual(32, 64, 1, 6),
+            InvertedResidual(64, 64, 1, 6),
+            InvertedResidual(64, 64, 1, 6),
+            InvertedResidual(64, 64, 1, 6)            
+            )
+        # 1/8 64 x 64
+        self.block_5 = nn.Sequential( 
+            InvertedResidual(64, 96, 1, 6),
+            InvertedResidual(96, 96, 1, 6),
+            InvertedResidual(96, 96, 1, 6)          
+            )
+        # 1/8 64 x 64
+        self.block_6 = nn.Sequential( 
+            InvertedResidual(96, 160, 1, 6),
+            InvertedResidual(160, 160, 1, 6),
+            InvertedResidual(160, 160, 1, 6)          
+            )
+        # 1/8 64 x 64
+        self.block_7 = InvertedResidual(160, 320, 1, 6)
 
     def forward(self, x):
-        x = self.features(x)
+        x = self.head_conv(x)
 
-        return x
+        x = self.block_1(x)
+        x = self.block_2(x)
+        # 1/4 128 x 128
+        low_level_feat = x
+
+        x = self.block_3(x)
+        x = self.block_4(x)
+        x = self.block_5(x)
+        x = self.block_6(x)
+        x = self.block_7(x)
+
+        return x, low_level_feat
+
+
 
 if __name__ == "__main__":
-    model = MobileNetV2()
-    x = torch.randn(1,3,512,512)
-    y = model(x)
+    model = MobileNet_v2_OS_8()
+    x = torch.randn(1,3,960,720)
+    y, low_level_feat = model(x)
     print(y.size())
 
